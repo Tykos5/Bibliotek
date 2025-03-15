@@ -16,8 +16,6 @@ namespace Bibliotek
         {
             bool avsluta = false;
 
-           
-
             while (!avsluta)
             {
                 //Skriv bok infon till fil
@@ -45,21 +43,21 @@ namespace Bibliotek
                         case "1":
                             ListaBok();
                             break;
-                        /* case "2":
+                         case "2":
                              NyBok();
                              break;
                          case "3":
-                             BortBok;
+                             BortBok();
                              break;
                          case "4":
-                             Sökbok();
+                             SökBok();
                              break;
-                         case "5":
-                             LånaBok();
-                             break;
-                         case "6":
-                             Återlämnabok
-                        break;*/
+                        /*case "5":
+                            LånaBok();
+                            break;
+                        case "6":
+                            ÅterlämnaBok();
+                       break;*/
                         case "7":
                             avsluta = true;
                             break;
@@ -78,6 +76,146 @@ namespace Bibliotek
             {
                 mittBibliotek[i].listaBok();
             }
+            Console.WriteLine("\n");
+        }
+
+        static void NyBok()
+        {
+            Console.WriteLine("Vad är författarens förnamn?");
+            string förNamn = Console.ReadLine();
+            Console.WriteLine("Vad är författarens efternamn?");
+            string efterNamn = Console.ReadLine();
+            Console.WriteLine("Vad är bokens titel?");
+            string titel = Console.ReadLine();
+            mittBibliotek.Add(new Bok(förNamn, efterNamn, titel));
+
+            StreamWriter skrivfil = new StreamWriter("Bibliotek.txt");
+            for (int i = 0; i < mittBibliotek.Count; i++)
+            {
+                skrivfil.WriteLine($"{mittBibliotek[i].Förnamn},{mittBibliotek[i].Efternamn},{mittBibliotek[i].Titel}");
+            }
+            skrivfil.Close();
+        }
+
+        static void BortBok()
+        {
+            Console.WriteLine("Vad heter boken du vill ta bort?");
+            string input = Console.ReadLine();
+
+            bool bokHittad = false;
+            for (int i = 0; i < mittBibliotek.Count; i++)
+            {
+                // Kollar om titeln på boken matchar det användaren skriver
+                if (mittBibliotek[i].Titel.Equals(input, StringComparison.OrdinalIgnoreCase))
+                {
+                    mittBibliotek.RemoveAt(i);
+                    Console.WriteLine($"{input} togs bort från biblioteket");
+                    bokHittad = true;
+                    break; // När boken tas bort, avsluta loopen
+                }
+            }
+
+            if (!bokHittad)
+            {
+                Console.WriteLine("Boken hittades inte i biblioteket.");
+            }
+
+            // Skriv tillbaka den uppdaterade listan till filen
+            StreamWriter skrivfil = new StreamWriter("Bibliotek.txt");
+            for (int i = 0; i < mittBibliotek.Count; i++)
+            {
+                skrivfil.WriteLine($"{mittBibliotek[i].Förnamn},{mittBibliotek[i].Efternamn},{mittBibliotek[i].Titel}");
+            }
+            skrivfil.Close();
+        }
+
+        static void SökBok()
+        {
+            bool sök = true;
+            while (sök)
+            {
+                Console.WriteLine("Vill du söka efter förnamn eller efternamn?");
+                string input = Console.ReadLine();
+                bool författareHittad;
+
+                switch (input.ToLower())
+                {
+                    case "efternamn":
+                        författareHittad = false;
+                        while (!författareHittad)
+                        {
+                            Console.WriteLine("Vilken författare vill du söka efter? (efternamn)");
+                            string sökEfternamn = Console.ReadLine();
+
+                            int i;
+                            for (i = 0; i < mittBibliotek.Count; i++)
+                            {
+                                // Kollar om titeln på boken matchar det användaren skriver
+                                if (mittBibliotek[i].Efternamn.Equals(sökEfternamn, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Console.WriteLine($"Du har dessa böcker av {mittBibliotek[i].Efternamn} i ditt bibliotek:");
+                                    Console.WriteLine($"{mittBibliotek[i].Förnamn} {mittBibliotek[i].Efternamn}, {mittBibliotek[i].Titel}");
+                                    författareHittad = true;
+                                    sök = false;
+                                    break;
+                                }
+                            } 
+                            for (i = i; i < mittBibliotek.Count; i++)
+                            {
+                                if (mittBibliotek[i].Efternamn.Equals(sökEfternamn, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Console.WriteLine($"{mittBibliotek[i].Förnamn} {mittBibliotek[i].Efternamn}, {mittBibliotek[i].Titel}");
+                                }
+                            }
+
+                            if (!författareHittad)
+                            {
+                                Console.WriteLine("Författaren hittades inte i biblioteket.");
+                            }
+                        }
+                        break;
+                    case "förnamn":
+
+                        författareHittad = false;
+                        while (!författareHittad)
+                        {
+                            Console.WriteLine("Vilken titel söker du efter?");
+                            string sökTitel = Console.ReadLine();
+
+                            int i;
+                            for (i = 0; i < mittBibliotek.Count; i++)
+                            {
+                                // Kollar om titeln på boken matchar det användaren skriver
+                                if (mittBibliotek[i].Titel.Equals(sökTitel, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Console.WriteLine($"Du har dessa böcker av {mittBibliotek[i].Efternamn} i ditt bibliotek:");
+                                    Console.WriteLine($"{mittBibliotek[i].Förnamn} {mittBibliotek[i].Efternamn}, {mittBibliotek[i].Titel}");
+                                    författareHittad = true;
+                                    sök = false;
+                                    break;
+                                }
+                            }
+                            for (i = i; i < mittBibliotek.Count; i++)
+                            {
+                                if (mittBibliotek[i].Efternamn.Equals(sökTitel, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Console.WriteLine($"{mittBibliotek[i].Förnamn} {mittBibliotek[i].Efternamn}, {mittBibliotek[i].Titel}");
+                                }
+                            }
+
+                            if (!författareHittad)
+                            {
+                                Console.WriteLine("Författaren hittades inte i biblioteket.");
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine("Felaktig input, Försök igen");
+                        break;
+                }
+            }
+            Console.WriteLine("\n");
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Bibliotek
         public string Efternamn { get; set; }
         public string Titel { get; set; }
 
-        public Bok(string titel, string förnamn, string efternamn)
+        public Bok(string förnamn, string efternamn, string titel)
         {
             Titel = titel;
             Förnamn = förnamn;
