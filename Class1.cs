@@ -23,5 +23,11 @@ namespace Bibliotek
         {
             Console.WriteLine($"{Förnamn} {Efternamn}, {Titel}");
         }
+
+        public void jämförInput(List<Bok> lista, string sökEfternamn)
+        {
+            
+
+        }
     }
 }

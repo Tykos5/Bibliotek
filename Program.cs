@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -131,91 +132,83 @@ namespace Bibliotek
 
         static void SökBok()
         {
-            bool sök = true;
-            while (sök)
+            bool giltigInput = false;
+            while (!giltigInput)
             {
                 Console.WriteLine("Vill du söka efter förnamn eller efternamn?");
                 string input = Console.ReadLine();
-                bool författareHittad;
 
                 switch (input.ToLower())
                 {
                     case "efternamn":
-                        författareHittad = false;
-                        while (!författareHittad)
+                        giltigInput = true;
+
+                        Console.WriteLine("Vilken författare vill du söka efter? (efternamn)");
+                        string sökEfternamn = Console.ReadLine();
+
+                        int i;
+                        List<Bok> matchEfternamn = new List<Bok>();  // lista för att hantera matchande författare
+
+                        for (i = 0; i < mittBibliotek.Count; i++) // loopar genom alla böcker
                         {
-                            Console.WriteLine("Vilken författare vill du söka efter? (efternamn)");
-                            string sökEfternamn = Console.ReadLine();
-
-                            int i;
-                            for (i = 0; i < mittBibliotek.Count; i++)
+                            if (mittBibliotek[i].Efternamn.StartsWith(sökEfternamn, StringComparison.OrdinalIgnoreCase)) // kollar om sökningen matchar med början av efternamnet
                             {
-                                // Kollar om titeln på boken matchar det användaren skriver
-                                if (mittBibliotek[i].Efternamn.Equals(sökEfternamn, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    Console.WriteLine($"Du har dessa böcker av {mittBibliotek[i].Efternamn} i ditt bibliotek:");
-                                    Console.WriteLine($"{mittBibliotek[i].Förnamn} {mittBibliotek[i].Efternamn}, {mittBibliotek[i].Titel}");
-                                    författareHittad = true;
-                                    sök = false;
-                                    break;
-                                }
-                            } 
-                            for (i = i; i < mittBibliotek.Count; i++)
-                            {
-                                if (mittBibliotek[i].Efternamn.Equals(sökEfternamn, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    Console.WriteLine($"{mittBibliotek[i].Förnamn} {mittBibliotek[i].Efternamn}, {mittBibliotek[i].Titel}");
-                                }
+                                matchEfternamn.Add(mittBibliotek[i]);  // lagrar böcker med matchande efternamn
                             }
+                        }
+                        if (matchEfternamn.Count < 1)
+                        {
+                            Console.WriteLine("Författaren hittades inte i biblioteket.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Författare som stämmer med din sökning:");
 
-                            if (!författareHittad)
+                            for (i = 0; i < matchEfternamn.Count; i++)
                             {
-                                Console.WriteLine("Författaren hittades inte i biblioteket.");
+                                matchEfternamn[i].listaBok(); // skriver ut böckerna med matchande efternamn
                             }
                         }
                         break;
+
                     case "förnamn":
 
-                        författareHittad = false;
-                        while (!författareHittad)
+                        giltigInput = true;
+
+                        Console.WriteLine("Vilken författare vill du söka efter? (förnamn)");
+                        string sökFörnamn = Console.ReadLine();
+
+                        List<Bok> matchFörnamn = new List<Bok>();  // lista för att hantera matchande författare
+
+                        for (i = 0; i < mittBibliotek.Count; i++) // loopar genom alla böcker
                         {
-                            Console.WriteLine("Vilken titel söker du efter?");
-                            string sökTitel = Console.ReadLine();
-
-                            int i;
-                            for (i = 0; i < mittBibliotek.Count; i++)
+                            if (mittBibliotek[i].Förnamn.StartsWith(sökFörnamn, StringComparison.OrdinalIgnoreCase)) // kollar om sökningen matchar med början av efternamnet
                             {
-                                // Kollar om titeln på boken matchar det användaren skriver
-                                if (mittBibliotek[i].Titel.Equals(sökTitel, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    Console.WriteLine($"Du har dessa böcker av {mittBibliotek[i].Efternamn} i ditt bibliotek:");
-                                    Console.WriteLine($"{mittBibliotek[i].Förnamn} {mittBibliotek[i].Efternamn}, {mittBibliotek[i].Titel}");
-                                    författareHittad = true;
-                                    sök = false;
-                                    break;
-                                }
+                                matchFörnamn.Add(mittBibliotek[i]);  // lagrar böcker med matchande efternamn
                             }
-                            for (i = i; i < mittBibliotek.Count; i++)
-                            {
-                                if (mittBibliotek[i].Efternamn.Equals(sökTitel, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    Console.WriteLine($"{mittBibliotek[i].Förnamn} {mittBibliotek[i].Efternamn}, {mittBibliotek[i].Titel}");
-                                }
-                            }
+                        }
+                        if (matchFörnamn.Count < 1)
+                        {
+                            Console.WriteLine("Författaren hittades inte i biblioteket.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Böcker som stämmer med din sökning:");
 
-                            if (!författareHittad)
+                            for (i = 0; i < matchFörnamn.Count; i++)
                             {
-                                Console.WriteLine("Författaren hittades inte i biblioteket.");
+                                matchFörnamn[i].listaBok(); // skriver ut böckerna med matchande efternamn
                             }
                         }
 
                         break;
+
                     default:
                         Console.WriteLine("Felaktig input, Försök igen");
                         break;
                 }
+                Console.WriteLine("\n");
             }
-            Console.WriteLine("\n");
         }
     }
 }
