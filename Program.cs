@@ -1,15 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System.CodeDom;
 
 namespace Bibliotek
 {
@@ -215,12 +207,12 @@ namespace Bibliotek
             while (hittad)
             {
                 hittad = false;
-                Console.WriteLine("Vilken författare vill du söka efter? (ange författarens för eller efternamn)");
+                Console.WriteLine("Vilken författare vill du söka efter? (ange författarens förnamn, efternamn eller titel)");
                 string input = Console.ReadLine().ToLower();
 
                 foreach (Bok bok in mittBibliotek)
                 {
-                    if (bok.Förnamn.ToLower().Contains(input) || bok.Efternamn.ToLower().Contains(input))
+                    if (bok.Förnamn.ToLower().Contains(input) || bok.Efternamn.ToLower().Contains(input) || bok.Titel.ToLower().Contains(input))
                     {
                         hittad = true;
                         Console.WriteLine($"Författare: {bok.Förnamn} {bok.Efternamn}, Titel: {bok.Titel}");
@@ -739,7 +731,6 @@ namespace Bibliotek
                         skrivfil_L.WriteLine($"{bok.Förnamn},{bok.Efternamn},{bok.Titel},{bok.Exemplar}");
                     }
                 }
-            }
-        
+            }   
     }
 }
