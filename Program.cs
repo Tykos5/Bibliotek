@@ -53,8 +53,9 @@ namespace Bibliotek
                     case "8": avsluta = true; break;
                     case "9": Console.Clear(); break;
                     default:
-                        Console.WriteLine("Felaktig input försök igen");
-                        Thread.Sleep(1000);
+                        Console.WriteLine("Felaktig input, tryck för att försök igen");
+                        Console.ReadKey();
+                        Console.Clear();
                         break;
                 }  //Menyval
             }
@@ -66,26 +67,23 @@ namespace Bibliotek
             mittBibliotek.Clear();
             if (!File.Exists("Bibliotek.txt"))
             {
-                using (FileStream fs = File.Create("Bibliotek.txt"))
-                {
-                    // File is created and closed immediately
-                }
+                using (FileStream fs = File.Create("Bibliotek.txt")) {}
 
                 using (StreamWriter skrivfil = new StreamWriter("Bibliotek.txt"))  // Hårdkoda in 13 böcker i biblioteket då den skapas
                 {
-                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och de vises sten");
-                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och hemligheternas kammare");
-                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och fången från Azkaban");
-                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och den flammande bägaren");
-                    skrivfil.WriteLine("Harper,Lee,To kill a mockingbird");
-                    skrivfil.WriteLine("Per Anders,Fogelström,Mina drömmars stad");
-                    skrivfil.WriteLine("Jan,Guillou,Ondskan");
-                    skrivfil.WriteLine("Astrid,Lindgren,Pippi Långstrump");
-                    skrivfil.WriteLine("Astrid,Lindgren,Bröderna Lejonhjärta");
-                    skrivfil.WriteLine("Astrid,Lindgren,Emil i Lönneberga");
-                    skrivfil.WriteLine("Astrid,Lindgren,Ronja Rövardotter");
-                    skrivfil.WriteLine("Astrid,Lindgren,Mio min Mio");
-                    skrivfil.WriteLine("Khaled,Hosseini,Flyga drake");
+                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och de vises sten,1");
+                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och hemligheternas kammare,1");
+                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och fången från Azkaban,1");
+                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och den flammande bägaren,1");
+                    skrivfil.WriteLine("Harper,Lee,To kill a mockingbird,1");
+                    skrivfil.WriteLine("Per Anders,Fogelström,Mina drömmars stad,5");
+                    skrivfil.WriteLine("Jan,Guillou,Ondskan,3");
+                    skrivfil.WriteLine("Astrid,Lindgren,Pippi Långstrump,1");
+                    skrivfil.WriteLine("Astrid,Lindgren,Bröderna Lejonhjärta,4");
+                    skrivfil.WriteLine("Astrid,Lindgren,Emil i Lönneberga,1");
+                    skrivfil.WriteLine("Astrid,Lindgren,Ronja Rövardotter,1");
+                    skrivfil.WriteLine("Astrid,Lindgren,Mio min Mio,1");
+                    skrivfil.WriteLine("Khaled,Hosseini,Flyga drake,2");
                 }
             }
             using (StreamReader läsfil = new StreamReader("Bibliotek.txt"))
@@ -94,14 +92,14 @@ namespace Bibliotek
                 while ((s = läsfil.ReadLine()) != null)
                 {
                     string[] bokdata = s.Split(',');
-                    mittBibliotek.Add(new Bok(bokdata[0], bokdata[1], bokdata[2]));
+                    mittBibliotek.Add(new Bok(bokdata[0], bokdata[1], bokdata[2], int.Parse(bokdata[3])));
                 }
             }
 
             lånadeBöcker.Clear();
             if (!File.Exists("Lånade.txt"))
             {
-                File.Create("Lånade.txt");  // Skapar filen om den inte finns
+                using (FileStream fs = File.Create("Lånade.txt")) {}  // Skapar filen om den inte finns
             }
             else
             {
@@ -111,7 +109,7 @@ namespace Bibliotek
                     while ((b = läsfil_L.ReadLine()) != null)
                     {
                         string[] bokdata = b.Split(',');
-                        lånadeBöcker.Add(new Bok(bokdata[0], bokdata[1], bokdata[2]));
+                        lånadeBöcker.Add(new Bok(bokdata[0], bokdata[1], bokdata[2], int.Parse(bokdata[3])));
                     }
                 }
             }
@@ -139,20 +137,45 @@ namespace Bibliotek
 
         static void NyBok()
         {
-            Console.WriteLine("Vad är författarens förnamn?");
-            string förNamn = Console.ReadLine();
-            Console.WriteLine("Vad är författarens efternamn?");
-            string efterNamn = Console.ReadLine();
-            Console.WriteLine("Vad är bokens titel?");
-            string titel = Console.ReadLine();
-            mittBibliotek.Add(new Bok(förNamn, efterNamn, titel));
-
-            StreamWriter skrivfil = new StreamWriter("Bibliotek.txt");
-            for (int i = 0; i < mittBibliotek.Count; i++)
+            Console.WriteLine("Lägg till en ny bok i biblioteket:");
+            string förNamn;
+            do
             {
-                skrivfil.WriteLine($"{mittBibliotek[i].Förnamn},{mittBibliotek[i].Efternamn},{mittBibliotek[i].Titel}");
+                Console.Write("Vad är författarens förnamn? ");
+                förNamn = Console.ReadLine();
+            } while (string.IsNullOrEmpty(förNamn));
+
+            string efterNamn;
+            do
+            {
+                Console.Write("Vad är författarens efternamn? ");
+                efterNamn = Console.ReadLine();
+            } while (string.IsNullOrEmpty(efterNamn));
+
+            string titel;
+            do
+            {
+                Console.Write("Vad är bokens titel? ");
+                titel = Console.ReadLine();
+            } while (string.IsNullOrEmpty(titel));
+
+            var bok = mittBibliotek.FirstOrDefault(b => b.Titel.Equals(titel, StringComparison.OrdinalIgnoreCase) && b.Förnamn.Equals(förNamn, StringComparison.OrdinalIgnoreCase) && b.Efternamn.Equals(efterNamn, StringComparison.OrdinalIgnoreCase));
+            
+            if (bok != null)
+            {
+                // Om boken redan finns, öka antalet exemplar
+                bok.Exemplar++;
+                Console.WriteLine($"Antalet exemplar av {titel} ökat till {bok.Exemplar}.");
             }
-            skrivfil.Close();
+            else
+            {
+                // Annars, lägg till en ny bok
+                using (StreamWriter skrivfil = new StreamWriter("Bibliotek.txt", true))
+                {
+                    skrivfil.WriteLine($"{förNamn},{efterNamn},{titel},1");
+                }
+                mittBibliotek.Add(new Bok(förNamn, efterNamn, titel, 1));  // Lägg till den nya boken i listan
+            }
         }
 
         static void BortBok()
@@ -179,66 +202,73 @@ namespace Bibliotek
                 }
                 else
                 {
-                    Console.WriteLine("Felaktig input, försök igen");
-                    Thread.Sleep(1000);
+                    Console.WriteLine("Felaktig input, tryck för att försöka igen");
+                    Console.ReadKey();
                     Console.Clear();
                 }
             }
-        } 
+        }
 
         static void SökBok()
         {
-            bool repris = true;
-            while (repris)
+            bool hittad = true;
+            while (hittad)
             {
+                hittad = false;
                 Console.WriteLine("Vilken författare vill du söka efter? (ange författarens för eller efternamn)");
-                string input = Console.ReadLine();
+                string input = Console.ReadLine().ToLower();
 
-                List<Bok> matchNamn = new List<Bok>();  // lista för att hantera matchande författare
-                List<Bok> matchNamnLånad = new List<Bok>(); // lista för att hantera matchande författare i lånade böcker
+                foreach (Bok bok in mittBibliotek)
+                {
+                    if (bok.Förnamn.ToLower().Contains(input) || bok.Efternamn.ToLower().Contains(input))
+                    {
+                        hittad = true;
+                        Console.WriteLine($"Författare: {bok.Förnamn} {bok.Efternamn}, Titel: {bok.Titel}");
+                    }
+                }
+                Console.WriteLine();
+                foreach (Bok bok in lånadeBöcker)
+                {
+                    if (bok.Förnamn.ToLower().Contains(input) || bok.Efternamn.ToLower().Contains(input))
+                    {
+                        hittad = true;
+                        if (bok.Exemplar > 1)
+                        {
+                            Console.WriteLine($"Författare: {bok.Förnamn} {bok.Efternamn}, Titel: {bok.Titel} - ({bok.Exemplar}x) (utlånad)");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Författare: {bok.Förnamn} {bok.Efternamn}, Titel: {bok.Titel} (utlånad)");
+                        }
+                    }
+                }
+                Console.WriteLine();
+                if (!hittad)
+                {
+                    while (true)
+                    {
+                        Console.WriteLine("Ingen bok hittades, vill du försöka igen? (ja/nej)");
+                        string val = Console.ReadLine();
 
-                foreach (var bok in mittBibliotek)
-                {
-                    if (bok.Förnamn.StartsWith(input, StringComparison.OrdinalIgnoreCase) || bok.Efternamn.StartsWith(input, StringComparison.OrdinalIgnoreCase))
-                    {
-                        matchNamn.Add(bok);  // lagrar böcker med matchande efternamn
+                        if ("ja".StartsWith(val, StringComparison.OrdinalIgnoreCase))
+                        {
+                            hittad = true;
+                            break;
+                        }
+                        else if ("nej".StartsWith(val, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Fel input, tryck för att försöka igen");
+                            Console.ReadKey();
+                            Console.Clear();
+                        }
                     }
                 }
-                foreach (var bok in lånadeBöcker)
-                {
-                    if (bok.Förnamn.StartsWith(input, StringComparison.OrdinalIgnoreCase) || bok.Efternamn.StartsWith(input, StringComparison.OrdinalIgnoreCase))
-                    {
-                        matchNamnLånad.Add(bok);  // lagrar böcker med matchande efternamn
-                    }
-                }
-                if (matchNamnLånad.Count < 1 && matchNamn.Count < 1) // Då inga matcher hittas
-                {
-                    Console.WriteLine("Ingen författare matchar med din sökning:");
-                    Console.WriteLine("Vill du försöka igen? (ja/nej)");
-                    string försökIgen = Console.ReadLine();
-                    if ("ja".StartsWith(försökIgen, StringComparison.OrdinalIgnoreCase))
-                    {
-                        repris = true;
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Författare som stämmer med din sökning:");
-
-                    foreach (var bok in matchNamn)
-                    {
-                        bok.listaBok(); // skriver ut böckerna med matchande efternamn
-                    }
-                    foreach (var bok in matchNamnLånad)
-                    {
-                        bok.listaBokLånade(); // skriver ut böckerna med matchande efternamn
-                    }
-                }
-                Console.WriteLine("\n");
+                else { return;  }
+                    Console.WriteLine("\n");
             }
         }
 
@@ -257,7 +287,9 @@ namespace Bibliotek
                 string input = Console.ReadLine();
                 repris = false;
 
+
                 var bok = mittBibliotek.FirstOrDefault(b => b.Titel.StartsWith(input, StringComparison.OrdinalIgnoreCase));
+
 
                 if (bok != null)
                 {
@@ -267,31 +299,81 @@ namespace Bibliotek
                         string lån = Console.ReadLine();
                         if ("ja".StartsWith(lån, StringComparison.OrdinalIgnoreCase))
                         {
-                            Console.WriteLine($"{bok.Titel} lånades ut");
-                            lånadeBöcker.Add(bok); // Lägger till boken i listan med lånade böcker  
-                            mittBibliotek.Remove(bok); // Tar bort boken från biblioteket 
+                            Console.WriteLine($"{bok.Titel} lånades ut, tryck för att fortsätta");
+                            if (bok.Exemplar > 1)
+                            {
+                                bok.Exemplar--;
+                            }
+                            else
+                            {
+                                mittBibliotek.Remove(bok); // Tar bort boken från biblioteket 
+                            }
+                            bool finns = false;
+                            foreach (Bok jämförbok in lånadeBöcker)
+                            {
+                                if (jämförbok.Titel == bok.Titel && jämförbok.Förnamn == bok.Förnamn && jämförbok.Efternamn == bok.Efternamn)
+                                {
+                                    jämförbok.Exemplar++;
+                                    finns = true;
+                                }
+                            }
+                            if (!finns)
+                            {
+                                lånadeBöcker.Add(new Bok(bok.Förnamn, bok.Efternamn,bok.Titel,1)); // Lägger till boken i listan med lånade böcker
+                            }
+
+
                             SparaBibliotek();
                             SparaLånadeBöcker();
+                            Console.ReadKey();
+                            Console.Clear();
                             break;
                         }
                         else if ("nej".StartsWith(lån, StringComparison.OrdinalIgnoreCase))
                         {
-                            Console.WriteLine("Boken lånades inte ut");
+                            Console.WriteLine("Boken lånades inte ut, tryck för att fortsätta");
+                            Console.ReadKey();
+                            Console.Clear();
                             break;
                         }
                         else
                         {
-                            Console.WriteLine("Felaktig input, försök igen");
+                            Console.WriteLine("Felaktig input, tryck för att försöka igen");
+                            Console.ReadKey();
+                            Console.Clear();
                         }
                     }
                 }
+                
                 else
                 {
-                    Console.WriteLine("Boken hittades inte i biblioteket, vill du försöka igen? (ja/nej)");
-                    string försökIgen = Console.ReadLine();
-                    if ("ja".StartsWith(försökIgen, StringComparison.OrdinalIgnoreCase))
+                    foreach (Bok Bok in lånadeBöcker)
                     {
-                        repris = true;
+                        bool finns = false;
+                        if (Bok.Titel.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                        {
+                            finns = true;
+                            Console.WriteLine($"{Bok.Titel} är redan utlånad, tryck för att fortsätta");
+                            Console.ReadKey();
+                            Console.Clear();
+
+                        }
+                        if (!finns)
+                        {
+                            Console.WriteLine("Boken finns inte i biblioteket");
+                            Console.WriteLine("Vill du försöka igen? (ja/nej)");
+                            string försökIgen = Console.ReadLine();
+                            if ("ja".StartsWith(försökIgen, StringComparison.OrdinalIgnoreCase))
+                            {
+                                repris = true;
+                                Console.Clear();
+                            }
+                            else
+                            {
+                                repris = false;
+                                return;
+                            }
+                        }
                     }
                 }
             }
@@ -301,7 +383,9 @@ namespace Bibliotek
         {
             if (lånadeBöcker.Count < 1)
             {
-                Console.WriteLine("Du har inga lånade böcker att återlämna");
+                Console.WriteLine("Du har inga lånade böcker att återlämna, tryck för att gå tillbaka till meny");
+                Console.ReadKey();
+                Console.Clear();
                 return;
             }
 
@@ -327,34 +411,95 @@ namespace Bibliotek
                         string lån = Console.ReadLine();
                         if ("ja".StartsWith(lån, StringComparison.OrdinalIgnoreCase))
                         {
-                            Console.WriteLine($"{bok.Titel} återlämnades");
-                            lånadeBöcker.Add(bok); // Lägger till boken i listan med lånade böcker  
-                            mittBibliotek.Remove(bok); // Tar bort boken från biblioteket 
+                            Console.WriteLine($"{bok.Titel} återlämnades, tryck för att fortsätta");
+                            if (bok.Exemplar > 1)
+                            {
+                                bok.Exemplar--;
+                            }
+                            else
+                            {
+                                lånadeBöcker.Remove(bok); // Tar bort boken från listan med lånade böcker 
+                            }
+
+                            bool finns = false;
+                            foreach (Bok jämförbok in mittBibliotek)
+                            {
+                                if (jämförbok.Titel == bok.Titel && jämförbok.Förnamn == bok.Förnamn && jämförbok.Efternamn == bok.Efternamn)
+                                {
+                                    jämförbok.Exemplar++;
+                                    finns = true;
+                                }
+                            }
+                            if (!finns)
+                            {
+                                mittBibliotek.Add(new Bok(bok.Förnamn, bok.Efternamn, bok.Titel, 1)); // Lägger till boken i listan med lånade böcker
+                            }
+
                             SparaBibliotek();
                             SparaLånadeBöcker();
+                            Console.ReadKey();
+                            Console.Clear();
                             return;
                         }
                         else if ("nej".StartsWith(lån, StringComparison.OrdinalIgnoreCase))
                         {
-                            Console.WriteLine("Boken lånades inte ut");
+                            Console.WriteLine("Boken lånades inte ut, tryck för att fortsätta");
+                            Console.ReadKey();
+                            Console.Clear();
                             return;
                         }
                         else
                         {
-                            Console.WriteLine("Felaktig input, försök igen");
+                            Console.WriteLine("Felaktig input, tryck för att försöka igen");
+                            Console.ReadKey();
+                            Console.Clear();
                         }
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Boken är inte utlånad");
+                    foreach (Bok Bok in mittBibliotek)
+                    {
+                        bool finns = false;
+                        if (Bok.Titel.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                        {
+                            finns = true;
+                            Console.WriteLine($"{Bok.Titel} är redan utlånad, tryck för att fortsätta");
+                            Console.ReadKey();
+                            Console.Clear();
+                            return;
+
+                        }
+                        if (!finns)
+                        {
+                            Console.WriteLine($"{Bok.Titel} är inte utlånad");
+                            Console.WriteLine("Vill du försöka igen? (ja/nej)");
+                            string försökIgen = Console.ReadLine();
+                            if ("nej".StartsWith(försökIgen, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return;
+                            }
+                            else if ("ja".StartsWith(försökIgen, StringComparison.OrdinalIgnoreCase))
+                            {
+                                repris = true;
+                                break;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Felaktig input, tryck för att försöka igen");
+                                Console.ReadKey();
+                                Console.Clear();
+                                break;
+                            }
+                        }
+                    }
                 }
             }
-
         }
 
         static void RedigeraBok()
         {
+            // Lista alla böcker i biblioteket
             foreach (var bok in mittBibliotek)
             {
                 bok.listaBok();
@@ -363,58 +508,98 @@ namespace Bibliotek
             Console.WriteLine("\nVilken bok vill du redigera? (ange titel)");
             string input = Console.ReadLine();
 
-            foreach (var Bok in mittBibliotek)
+            var bokAttRedigera = mittBibliotek.FirstOrDefault(b => b.Titel.StartsWith(input, StringComparison.OrdinalIgnoreCase));
+
+            if (bokAttRedigera != null)
             {
-                if (Bok.Titel.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                while (true)
                 {
-                    while (true)
+                    Console.WriteLine($"Vill du redigera {bokAttRedigera.Titel}? (ja/nej)");
+                    string alt = Console.ReadLine();
+
+                    if ("ja".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
                     {
-                        Console.WriteLine($"Vill du redigera {Bok.Titel}? (ja/nej)");
-                        string alt = Console.ReadLine();
+                        Console.WriteLine("Vilken del av boken vill du redigera?");
+                        Console.WriteLine("1. Författarens förnamn");
+                        Console.WriteLine("2. Författarens efternamn");
+                        Console.WriteLine("3. Bokens titel");
+                        Console.WriteLine("4. Antal exemplar");
+                        string val = Console.ReadLine();
 
-                        if ("ja".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
+                        switch (val)
                         {
+                            case "1":
+                                Console.WriteLine($"Nuvarande författarens förnamn: {bokAttRedigera.Förnamn}");
+                                Console.Write("Ange nytt förnamn (lämna tomt för att behålla det gamla): ");
+                                string nyttFörnamn = Console.ReadLine();
+                                if (!string.IsNullOrEmpty(nyttFörnamn))
+                                {
+                                    bokAttRedigera.Förnamn = nyttFörnamn;
+                                }
+                                break;
 
-                            Console.WriteLine("Vilken del av boken vill du redigera?");
-                            Console.WriteLine("1. Författarens förnamn");
-                            Console.WriteLine("2. Författarens efternamn");
-                            Console.WriteLine("3. Bokens titel");
-                            string val = Console.ReadLine();
-                            switch (val)
-                            {
-                                case "1":
-                                    Console.WriteLine("Vad är författarens förnamn?");
-                                    Bok.Förnamn = Console.ReadLine();
-                                    break;
-                                case "2":
-                                    Console.WriteLine("Vad är författarens efternamn?");
-                                    Bok.Efternamn = Console.ReadLine();
-                                    break;
-                                case "3":
-                                    Console.WriteLine("Vad är bokens titel?");
-                                    Bok.Titel = Console.ReadLine();
-                                    break;
-                                default:
-                                    Console.WriteLine("Felaktig input, försök igen");
-                                    break;
-                            }
-                        }
-                        else if ("nej".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
-                        {
-                            Console.WriteLine("Boken redigerades inte");
-                            Thread.Sleep(1000);
-                            return;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Felaktig input, försök igen");
-                            Thread.Sleep(1000);
+                            case "2":
+                                Console.WriteLine($"Nuvarande författarens efternamn: {bokAttRedigera.Efternamn}");
+                                Console.Write("Ange nytt efternamn (lämna tomt för att behålla det gamla): ");
+                                string nyttEfternamn = Console.ReadLine();
+                                if (!string.IsNullOrEmpty(nyttEfternamn))
+                                {
+                                    bokAttRedigera.Efternamn = nyttEfternamn;
+                                }
+                                break;
 
+                            case "3":
+                                Console.WriteLine($"Nuvarande bokens titel: {bokAttRedigera.Titel}");
+                                Console.Write("Ange ny titel (lämna tomt för att behålla det gamla): ");
+                                string nyTitel = Console.ReadLine();
+                                if (!string.IsNullOrEmpty(nyTitel))
+                                {
+                                    bokAttRedigera.Titel = nyTitel;
+                                }
+                                break;
+
+                            case "4":
+                                Console.WriteLine($"Nuvarande antal exemplar: {bokAttRedigera.Exemplar}");
+                                Console.Write("Ange nytt antal exemplar (lämna tomt för att behålla det gamla): ");
+                                string nyttAntalExemplar = Console.ReadLine();
+                                if (!string.IsNullOrEmpty(nyttAntalExemplar) && int.TryParse(nyttAntalExemplar, out int nyttExemplar))
+                                {
+                                    bokAttRedigera.Exemplar = nyttExemplar;
+                                }
+                                else if (!string.IsNullOrEmpty(nyttAntalExemplar))
+                                {
+                                    Console.WriteLine("Ogiltigt antal, försök igen.");
+                                    Console.ReadKey(); // Vänta på att användaren trycker på en tangent innan de fortsätter
+                                    continue; // Hoppa tillbaka till menyn för att ge användaren en ny chans
+                                }
+                                break;
+
+                            default:
+                                Console.WriteLine("Felaktig input, försök igen.");
+                                Console.ReadKey(); // Vänta på att användaren trycker på en tangent
+                                break;
                         }
-                        SparaBibliotek();
-                        return;
                     }
+                    else if ("nej".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("Boken redigerades inte.");
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Felaktig input, försök igen.");
+                        Console.ReadKey(); // Vänta på att användaren trycker på en tangent
+                    }
+
+                    // Spara uppdaterad information till fil
+                    SparaBibliotek();
+                    break;
                 }
+            }
+            else
+            {
+                Console.WriteLine("Ingen bok med den titeln hittades.");
+                Console.ReadKey(); // Vänta på att användaren trycker på en tangent
             }
         }
 
@@ -429,6 +614,35 @@ namespace Bibliotek
 
             if (bok != null)
             {
+                if (bok.Exemplar > 1)
+                {
+                    Console.WriteLine($"Det finns {bok.Exemplar} exemplar av {bok.Titel}, hur många exemplar vill du ta bort? (1-{bok.Exemplar})");
+                    int alternativ = int.Parse(Console.ReadLine());
+                    if (alternativ < 1 || alternativ > bok.Exemplar)
+                    {
+                        Console.WriteLine("Felaktig input, försök igen");
+                        return;
+                    }
+                    else if (alternativ == bok.Exemplar)
+                    {
+                        mittBibliotek.Remove(bok);
+                        Console.WriteLine($"{bok.Titel} togs bort från biblioteket, tryck för att fortsätta");
+                        SparaBibliotek();
+                        Console.ReadKey();
+                        Console.Clear();
+                        return;
+                    }
+                    else
+                    {
+                        bok.Exemplar -= alternativ;
+                        Console.WriteLine($"{alternativ} exemplar av {bok.Titel} togs bort från biblioteket, tryck för att fortsätta");
+                        SparaBibliotek();
+                        Console.ReadKey();
+                        Console.Clear();
+                        return;
+                    }
+
+                }
 
                 Console.WriteLine($"Vill du ta bort {bok.Titel} från biblioteket? (ja/nej)");
                 string alt = Console.ReadLine();
@@ -436,22 +650,23 @@ namespace Bibliotek
                 if ("ja".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
                 {
                     mittBibliotek.Remove(bok);
-                    Console.WriteLine($"{bok.Titel} togs bort från biblioteket");
+                    Console.WriteLine($"{bok.Titel} togs bort från biblioteket, tryck för att fortsätta");
                     SparaBibliotek();
-                    Thread.Sleep(1000);
+                    Console.ReadKey();
                     return;
                 }
                 else if ("nej".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine("Boken togs inte bort från biblioteket");
-                    Thread.Sleep(1000);
+                    Console.WriteLine("Boken togs inte bort från biblioteket, tryck för att fortsätta");
+                    Console.ReadKey();
                     return;
                 }
             }
             else
             {
-                Console.WriteLine("Boken hittades inte.");
-                Thread.Sleep(1000);
+                Console.WriteLine("Boken hittades inte, tryck för att fortsätta");
+                Console.ReadKey();
+                Console.Clear();
             }
         }
 
@@ -486,15 +701,15 @@ namespace Bibliotek
                     {
                         mittBibliotek.Remove(bok);
                     }
-                    Console.WriteLine("Böckerna togs bort från biblioteket");
+                    Console.WriteLine("Böckerna togs bort från biblioteket, tryck för att fortsätta");
                     SparaBibliotek();
-                    Thread.Sleep(1000);
+                    Console.ReadKey();
                     return;
                 }
                 else if ("nej".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine("Böckerna togs inte bort från biblioteket");
-                    Thread.Sleep(1000);
+                    Console.WriteLine("Böckerna togs inte bort från biblioteket, tryck för att fortsätta");
+                    Console.ReadKey();
                     return;
                 }
                 else
@@ -510,20 +725,21 @@ namespace Bibliotek
             {
                 foreach (var bok in mittBibliotek)
                 {
-                    skrivfil.WriteLine($"{bok.Förnamn},{bok.Efternamn},{bok.Titel}");
+                    skrivfil.WriteLine($"{bok.Förnamn},{bok.Efternamn},{bok.Titel},{bok.Exemplar}");
                 }
             }
         }
 
         static void SparaLånadeBöcker()
-        {
-            using (StreamWriter skrivfil_L = new StreamWriter("Lånade.txt"))
             {
-                foreach (var bok in lånadeBöcker)
+                using (StreamWriter skrivfil_L = new StreamWriter("Lånade.txt"))
                 {
-                    skrivfil_L.WriteLine($"{bok.Förnamn},{bok.Efternamn},{bok.Titel}");
+                    foreach (var bok in lånadeBöcker)
+                    {
+                        skrivfil_L.WriteLine($"{bok.Förnamn},{bok.Efternamn},{bok.Titel},{bok.Exemplar}");
+                    }
                 }
             }
-        }
+        
     }
 }
