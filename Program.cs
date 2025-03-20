@@ -3,81 +3,133 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Bibliotek
 {
     internal class Program
     {
         static List<Bok> mittBibliotek = new List<Bok>();
+        static List<Bok> lånadeBöcker = new List<Bok>();
+
+
         static void Main(string[] args)
         {
+            LaddaListor();
             bool avsluta = false;
 
             while (!avsluta)
             {
-                //Skriv bok infon till fil
-                mittBibliotek.Clear(); // Rensar först personlistan innan användning
-                StreamReader läsfil = new StreamReader("Bibliotek.txt");
-                string s;
-                // Läser filen tills till slutet hittas
-                while ((s = läsfil.ReadLine()) != null)
-                {
-                    string[] bokdata = s.Split(','); // Delar upp data i raden för array
+                Console.WriteLine("Välkommen till ditt personliga bibliotek! Vad vill du göra?");
+                Console.WriteLine("1. Lista alla böcker");
+                Console.WriteLine("2. Lägg till ny bok");
+                Console.WriteLine("3. Ta bort bok");
+                Console.WriteLine("4. Sök efter bok");
+                Console.WriteLine("5. Låna en bok");
+                Console.WriteLine("6. Återlämna en bok");
+                Console.WriteLine("7. Avsluta program");
+                Console.WriteLine("8. Rensa konsol");
+                Console.Write("Välj ett alternativ (1-8): ");
 
-                    mittBibliotek.Add(new Bok(bokdata[0], bokdata[1], bokdata[2])); // Läser in data till objektet
+                string input = Console.ReadLine();
+                Console.Clear();
+
+                switch (input)
+                {
+                    case "1":   ListaBok();     break;
+                    case "2":   NyBok();        break;
+                    case "3":   BortBok();      break;
+                    case "4":   SökBok();       break;
+                    case "5":   LånaBok();      break;
+                    case "6":   ÅterlämnaBok(); break;
+                    case "7":   avsluta = true; break;
+                    case "8":   Console.Clear();break;
+                    default:
+                        Console.WriteLine("Felaktig input försök igen");    
+                        Thread.Sleep(1000);
+                        break;
                 }
-                läsfil.Close();
-
-                bool meny = true;
-                while (meny)
-                {
-                    meny = false;
-                    Console.WriteLine("Välkommen till ditt personliga bibliotek, vad vill du göra? \n\n 1. Lista alla böcker i ditt bibliotek. \n 2. Lägg till ny bok. \n 3. Ta bort bok \n 4. Sök efter existerande bok. \n 5. Låna en bok. \n 6. Återlämna en bok. \n 7. Avsluta program. \n\nSvara med en siffra 1-7");
-                    string input = Console.ReadLine();
-
-                    switch (input)
-                    {
-                        case "1":
-                            ListaBok();
-                            break;
-                         case "2":
-                             NyBok();
-                             break;
-                         case "3":
-                             BortBok();
-                             break;
-                         case "4":
-                             SökBok();
-                             break;
-                        /*case "5":
-                            LånaBok();
-                            break;
-                        case "6":
-                            ÅterlämnaBok();
-                       break;*/
-                        case "7":
-                            avsluta = true;
-                            break;
-                        default:
-                            Console.WriteLine("Felaktig input försök igen");
-                            meny = true;
-                            break;
-                    }
-                } //MENY AVSLUTAS
+                 
             }
         }
+
+        static void LaddaListor()
+        {
+            mittBibliotek.Clear();
+            if (!File.Exists("Bibliotek.txt"))
+            {
+                File.Create("Bibliotek.txt"); // Skapar filen om den inte finns
+                
+                using (StreamWriter skrivfil = new StreamWriter("Bibliotek.txt"))  // Hårdkoda in 13 böcker i biblioteket då den skapas
+                {
+                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och de vises sten");
+                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och hemligheternas kammare");
+                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och fången från Azkaban");
+                    skrivfil.WriteLine("J.K.,Rowling,Harry Potter och den flammande bägaren");
+                    skrivfil.WriteLine("Harper,Lee,To kill a mockingbird");
+                    skrivfil.WriteLine("Per Anders,Fogelström,Mina drömmars stad");
+                    skrivfil.WriteLine("Jan,Guillou,Ondskan");
+                    skrivfil.WriteLine("Astrid,Lindgren,Pippi Långstrump");
+                    skrivfil.WriteLine("Astrid,Lindgren,Bröderna Lejonhjärta");
+                    skrivfil.WriteLine("Astrid,Lindgren,Emil i Lönneberga");
+                    skrivfil.WriteLine("Astrid,Lindgren,Ronja Rövardotter");
+                    skrivfil.WriteLine("Astrid,Lindgren,Mio min Mio");
+                    skrivfil.WriteLine("Khaled,Hosseini,Flyga drake");
+                }
+            }
+            else
+            {
+                using (StreamReader läsfil = new StreamReader("Bibliotek.txt"))
+                {
+                    string s;
+                    while ((s = läsfil.ReadLine()) != null)
+                    {
+                        string[] bokdata = s.Split(',');
+                        mittBibliotek.Add(new Bok(bokdata[0], bokdata[1], bokdata[2]));
+                    }
+                }
+            }
+
+            lånadeBöcker.Clear();
+            if (!File.Exists("Lånade.txt"))
+            {
+                File.Create("Lånade.txt");  // Skapar filen om den inte finns
+            }
+            else
+            {
+                using (StreamReader läsfil_L = new StreamReader("Lånade.txt"))
+                {
+                    string b;
+                    while ((b = läsfil_L.ReadLine()) != null)
+                    {
+                        string[] bokdata = b.Split(',');
+                        lånadeBöcker.Add(new Bok(bokdata[0], bokdata[1], bokdata[2]));
+                    }
+                }
+            }
+        }
+
         static void ListaBok()
         {
             //Skriv ut info om böckerna
-            for (int i = 0; i < mittBibliotek.Count; i++)
+            foreach (var bok in mittBibliotek)
             {
-                mittBibliotek[i].listaBok();
+                bok.listaBok();
             }
-            Console.WriteLine("\n");
+            Console.WriteLine();
+            foreach (var bok in lånadeBöcker)
+            {
+                bok.listaBokLånade();
+            }
+           if (lånadeBöcker.Count > 0)
+            {
+                Console.WriteLine("\n");
+            }
         }
 
         static void NyBok()
@@ -100,114 +152,231 @@ namespace Bibliotek
 
         static void BortBok()
         {
-            Console.WriteLine("Vad heter boken du vill ta bort?");
+            Console.WriteLine("Böcker i bibliotek:");
+            foreach (var Bok in mittBibliotek)
+            {
+                Bok.listaBok();
+            }
+
+            Console.WriteLine("\nVilken bok vill du ta bort? (ange titel)");
             string input = Console.ReadLine();
 
-            bool bokHittad = false;
-            for (int i = 0; i < mittBibliotek.Count; i++)
+            var bok = mittBibliotek.FirstOrDefault(b => b.Titel.StartsWith(input, StringComparison.OrdinalIgnoreCase));
+
+            if (bok != null)
             {
-                // Kollar om titeln på boken matchar det användaren skriver
-                if (mittBibliotek[i].Titel.Equals(input, StringComparison.OrdinalIgnoreCase))
+                
+                Console.WriteLine($"Vill du ta bort {bok.Titel} från biblioteket? (ja/nej)");
+                string alt = Console.ReadLine();
+
+                if ("ja".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
                 {
-                    mittBibliotek.RemoveAt(i);
-                    Console.WriteLine($"{input} togs bort från biblioteket");
-                    bokHittad = true;
-                    break; // När boken tas bort, avsluta loopen
+                    mittBibliotek.Remove(bok);
+                    Console.WriteLine($"{bok.Titel} togs bort från biblioteket");
+                    SparaBibliotek();
+                    Thread.Sleep(1000);
+                    return;
+                }
+                else if ("nej".StartsWith(alt, StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("Boken togs inte bort från biblioteket");
+                    Thread.Sleep(1000);
+                    return;
                 }
             }
-
-            if (!bokHittad)
+            else
             {
-                Console.WriteLine("Boken hittades inte i biblioteket.");
+                Console.WriteLine("Boken hittades inte.");
+                Thread.Sleep(1000);
             }
-
-            // Skriv tillbaka den uppdaterade listan till filen
-            StreamWriter skrivfil = new StreamWriter("Bibliotek.txt");
-            for (int i = 0; i < mittBibliotek.Count; i++)
-            {
-                skrivfil.WriteLine($"{mittBibliotek[i].Förnamn},{mittBibliotek[i].Efternamn},{mittBibliotek[i].Titel}");
-            }
-            skrivfil.Close();
         }
 
         static void SökBok()
         {
-            bool giltigInput = false;
-            while (!giltigInput)
+            bool repris = true;
+            while (repris)
             {
-                Console.WriteLine("Vill du söka efter förnamn eller efternamn?");
+                Console.WriteLine("Vilen författare vill du söka efer? (agne författarens för eller efternamn)");
                 string input = Console.ReadLine();
 
-                switch (input.ToLower())
+                List<Bok> matchNamn = new List<Bok>();  // lista för att hantera matchande författare
+                List<Bok> matchNamnLånad = new List<Bok>(); // lista för att hantera matchande författare i lånade böcker
+
+                foreach (var bok in mittBibliotek)
                 {
-                    case "efternamn":
-                        giltigInput = true;
+                    if (bok.Förnamn.StartsWith(input, StringComparison.OrdinalIgnoreCase) || bok.Efternamn.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                    {
+                        matchNamn.Add(bok);  // lagrar böcker med matchande efternamn
+                    }
+                }
+                foreach (var bok in lånadeBöcker)
+                {
+                    if (bok.Förnamn.StartsWith(input, StringComparison.OrdinalIgnoreCase) || bok.Efternamn.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                    {
+                        matchNamnLånad.Add(bok);  // lagrar böcker med matchande efternamn
+                    }
+                }
+                if (matchNamnLånad.Count < 1 && matchNamn.Count < 1) // Då inga matcher hittas
+                {
+                    Console.WriteLine("Ingen författare matchar med din sökning:");
+                    Console.WriteLine("Vill du försöka igen? (ja/nej)");
+                    string försökIgen = Console.ReadLine();
+                    if ("ja".StartsWith(försökIgen, StringComparison.OrdinalIgnoreCase))
+                    {
+                        repris = true;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Författare som stämmer med din sökning:");
 
-                        Console.WriteLine("Vilken författare vill du söka efter? (efternamn)");
-                        string sökEfternamn = Console.ReadLine();
-
-                        int i;
-                        List<Bok> matchEfternamn = new List<Bok>();  // lista för att hantera matchande författare
-
-                        for (i = 0; i < mittBibliotek.Count; i++) // loopar genom alla böcker
-                        {
-                            if (mittBibliotek[i].Efternamn.StartsWith(sökEfternamn, StringComparison.OrdinalIgnoreCase)) // kollar om sökningen matchar med början av efternamnet
-                            {
-                                matchEfternamn.Add(mittBibliotek[i]);  // lagrar böcker med matchande efternamn
-                            }
-                        }
-                        if (matchEfternamn.Count < 1)
-                        {
-                            Console.WriteLine("Författaren hittades inte i biblioteket.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Författare som stämmer med din sökning:");
-
-                            for (i = 0; i < matchEfternamn.Count; i++)
-                            {
-                                matchEfternamn[i].listaBok(); // skriver ut böckerna med matchande efternamn
-                            }
-                        }
-                        break;
-
-                    case "förnamn":
-
-                        giltigInput = true;
-
-                        Console.WriteLine("Vilken författare vill du söka efter? (förnamn)");
-                        string sökFörnamn = Console.ReadLine();
-
-                        List<Bok> matchFörnamn = new List<Bok>();  // lista för att hantera matchande författare
-
-                        for (i = 0; i < mittBibliotek.Count; i++) // loopar genom alla böcker
-                        {
-                            if (mittBibliotek[i].Förnamn.StartsWith(sökFörnamn, StringComparison.OrdinalIgnoreCase)) // kollar om sökningen matchar med början av efternamnet
-                            {
-                                matchFörnamn.Add(mittBibliotek[i]);  // lagrar böcker med matchande efternamn
-                            }
-                        }
-                        if (matchFörnamn.Count < 1)
-                        {
-                            Console.WriteLine("Författaren hittades inte i biblioteket.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Böcker som stämmer med din sökning:");
-
-                            for (i = 0; i < matchFörnamn.Count; i++)
-                            {
-                                matchFörnamn[i].listaBok(); // skriver ut böckerna med matchande efternamn
-                            }
-                        }
-
-                        break;
-
-                    default:
-                        Console.WriteLine("Felaktig input, Försök igen");
-                        break;
+                    foreach (var bok in matchNamn)
+                    {
+                        bok.listaBok(); // skriver ut böckerna med matchande efternamn
+                    }
+                    foreach (var bok in matchNamnLånad)
+                    {
+                        bok.listaBokLånade(); // skriver ut böckerna med matchande efternamn
+                    }
                 }
                 Console.WriteLine("\n");
+            }
+        }
+
+        static void LånaBok()
+        {
+            bool repris = true;
+            while (repris)
+            {
+                Console.WriteLine("Böcker i bibliotek:");
+                foreach (var Bok in mittBibliotek)
+                {
+                    Bok.listaBok();
+                }
+
+                Console.WriteLine("\nVilken bok vill du låna? Skriv in titeln");
+                string input = Console.ReadLine();
+                repris = false;
+
+                var bok = mittBibliotek.FirstOrDefault(b => b.Titel.StartsWith(input, StringComparison.OrdinalIgnoreCase));
+
+                if (bok != null)
+                {
+                    while (true)
+                    {
+                        Console.WriteLine($"Vill du låna {bok.Titel}? (Ja/Nej)");
+                        string lån = Console.ReadLine();
+                        if ("ja".StartsWith(lån, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine($"{bok.Titel} lånades ut");
+                            lånadeBöcker.Add(bok); // Lägger till boken i listan med lånade böcker  
+                            mittBibliotek.Remove(bok); // Tar bort boken från biblioteket 
+                            SparaBibliotek();
+                            SparaLånadeBöcker();
+                            break;
+                        }
+                        else if ("nej".StartsWith(lån, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine("Boken lånades inte ut");
+                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Felaktig input, försök igen");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Boken hittades inte i biblioteket, vill du försöka igen? (ja/nej)");
+                    string försökIgen = Console.ReadLine();
+                    if ("ja".StartsWith(försökIgen, StringComparison.OrdinalIgnoreCase))
+                    {
+                        repris = true;
+                    }
+                }
+            }
+        }
+
+        static void ÅterlämnaBok()
+        { 
+            if (lånadeBöcker.Count < 1)
+            {
+                Console.WriteLine("Du har inga lånade böcker att återlämna");
+                return;
+            }
+
+            Console.WriteLine("Utlånade böcker:");
+            foreach (var Bok in lånadeBöcker)
+            {
+                Bok.listaBok();
+            }
+
+            bool repris = true;
+            while (repris)
+            {
+                Console.WriteLine("\nVilken bok vill du återlämna?");
+                string input = Console.ReadLine();
+
+                var bok = lånadeBöcker.FirstOrDefault(b => b.Titel.StartsWith(input, StringComparison.OrdinalIgnoreCase));
+
+                if (bok != null)
+                {
+                    while (true)
+                    {
+                        Console.WriteLine($"Vill du låna {bok.Titel}? (Ja/Nej)");
+                        string lån = Console.ReadLine();
+                        if ("ja".StartsWith(lån, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine($"{bok.Titel} lånades ut");
+                            lånadeBöcker.Add(bok); // Lägger till boken i listan med lånade böcker  
+                            mittBibliotek.Remove(bok); // Tar bort boken från biblioteket 
+                            SparaBibliotek();
+                            SparaLånadeBöcker();
+                            break;
+                        }
+                        else if ("nej".StartsWith(lån, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine("Boken lånades inte ut");
+                            return;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Felaktig input, försök igen");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Boken är inte utlånad");
+                }
+            }
+
+        }
+
+        static void SparaBibliotek()
+        {
+            using (StreamWriter skrivfil = new StreamWriter("Bibliotek.txt"))
+            {
+                foreach (var bok in mittBibliotek)
+                {
+                    skrivfil.WriteLine($"{bok.Förnamn},{bok.Efternamn},{bok.Titel}");
+                }
+            }
+        }
+
+        static void SparaLånadeBöcker()
+        {
+            using (StreamWriter skrivfil_L = new StreamWriter("Lånade.txt"))
+            {
+                foreach (var bok in lånadeBöcker)
+                {
+                    skrivfil_L.WriteLine($"{bok.Förnamn},{bok.Efternamn},{bok.Titel}");
+                }
             }
         }
     }
